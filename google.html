@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <!-- Load Jquery -->
+
+    <script language="JavaScript" type="text/javascript" src="jquery-1.10.1.min.js?v=2.1"></script>
+
+    <!-- Load Google Maps Api -->
+
+    <!-- IMPORTANT: change the API v3 key -->
+
+    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyAsF7Cxxa0d99msseEsU6jC-c37YOLtM9E&sensor=false"></script>
+
+    <!-- Initialize Map and markers -->
+
+    <script type="text/javascript">
+        var myCenter=new google.maps.LatLng(51.748114, -1.140667);
+        var marker;
+        var marker1;
+        var map;
+        var mapProp;
+        var lines;
+        var lines_temp=0;
+        var lines_sys=0;
+        var lines_local=0;
+        var lines_flag=0;
+        var switch_flag=0;
+
+        var labels = '1';
+        var label_p1 = 'PARK 1';
+        var gpsStream;
+
+        var image = "./car9.png";
+        var image1 = "./car7.png";
+        var image_p1 = "./p1.png";
+        var image_p2 = "./p2.png";
+        var image_p3 = "./p3.png";
+
+
+        function initialize()
+        {
+            mapProp = {
+                center:myCenter,
+                zoom:18,
+                mapTypeId:google.maps.MapTypeId.ROADMAP
+            };
+            map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+            setInterval('mark()',1000);
+        }
+
+        function mark()
+        {
+            var client = new XMLHttpRequest();
+            //client.open('GET', 'ethos_space_database.txt');
+            client.open('GET', 'ethos_data_map.txt');
+            client.onreadystatechange = function() {
+                //alert("responseText"+client.responseText);
+                //alert("gpsStream"+gpsStream);
+                gpsStream=client.responseText.trim();
+            }
+            client.send();
+
+            //alert(image);
+            lines = gpsStream.split("\n");
+
+
+            if (lines_sys > 0)
+            {
+                if (lines_flag==0)
+                {
+                    lines_local = 0;
+                    lines_flag=1;
+                }
+                else
+                {
+                    if (lines_sys > lines_local)
+                    {
+                        lines_local=lines_temp;
+                    }
+                }
+            }
+
+            lines_temp=lines_sys;
+            lines_sys=lines.length;
+
+            if (lines_temp>lines_local)
+            {
+                switch_flag=1;
+            }
+
+            var words=0;
+            var words1=0;
+
+            // This example displays a marker at the center of Australia.
+            // When the user clicks the marker, an info window opens.
+
+            //function initMap() {
+            //var auto_remove = true;
+//alert('lines_local: '+lines_local);
+//alert('lines_temp: '+lines_temp);
+//document.write('lines_local: '+lines_local);
+
+//document.write('lines_temp: '+lines_temp);
+
+
+            //for (var i=0;i<lines.length;i++)
+            var i=0;
+            for (i=lines_local;i<lines_temp;i++)
+            {
+                console.log(lines[i]);
+                words=lines[i].split(",");
+
+                if ((words[2]!="")&&(words[3]!=""))
+                {
+                    marker=new google.maps.Marker({
+                        position:new google.maps.LatLng(words[2],words[3]),
+                        icon: image,
+                    });
+                    marker.setMap(null);
+                    marker.setMap(map);
+                    map.setCenter(new google.maps.LatLng(words[2],words[3]));
+                }
+
+                //if (i==lines_temp-1)
+                //{
+                //marker.setAnimation(google.maps.Animation.BOUNCE);
+                //}
+                //marker.setMap(null);
+            }
+
+            if (lines.length==1)
+            {
+                console.log(lines[0]);
+                words=lines[0].split(",");
+
+                if ((words[2]!="")&&(words[3]!=""))
+                {
+                    document.getElementById('sat').innerHTML=words[2]+","+words[3];//words[1]/100;
+                    document.getElementById('speed').innerHTML=words[5].substring(0, 5);
+                    //20160603153120
+                    var time_utc=words[0].slice(0, 4) + "-" + words[0].slice(4);
+                    time_utc=time_utc.slice(0, 7) + "-" + time_utc.slice(7);
+                    time_utc=time_utc.slice(0, 10) + " " + time_utc.slice(10);
+                    time_utc=time_utc.slice(0, 13) + ":" + time_utc.slice(13);
+                    time_utc=time_utc.slice(0, 16) + ":" + time_utc.slice(16);
+
+                    document.getElementById('time').innerHTML=time_utc;//words[0];
+                    document.getElementById('length').innerHTML=words[1];
+                    document.getElementById('depth').innerHTML=words[6];
+                    document.getElementById('slots').innerHTML=lines.length;
+                }
+            }
+            else if (lines.length==2)
+            {
+                console.log(lines[0]);
+                console.log(lines[1]);
+
+                words=lines[0].split(",");
+                words1=lines[1].split(",");
+                if ((words1[2]!="")&&(words1[3]!=""))
+                {
+                    document.getElementById('sat').innerHTML=words[2]+","+words[3];//words[1]/100;
+                    document.getElementById('speed').innerHTML=words[5].substring(0, 5);
+
+                    var time_utc=words[0].slice(0, 4) + "-" + words[0].slice(4);
+                    time_utc=time_utc.slice(0, 7) + "-" + time_utc.slice(7);
+                    time_utc=time_utc.slice(0, 10) + " " + time_utc.slice(10);
+                    time_utc=time_utc.slice(0, 13) + ":" + time_utc.slice(13);
+                    time_utc=time_utc.slice(0, 16) + ":" + time_utc.slice(16);
+
+                    document.getElementById('time').innerHTML=time_utc;//words[0];
+                    document.getElementById('length').innerHTML=words[1];
+                    document.getElementById('depth').innerHTML=words[6];
+                    document.getElementById('slots').innerHTML=lines.length-1;
+
+                    var time_utc1=words1[0].slice(0, 4) + "-" + words1[0].slice(4);
+                    time_utc1=time_utc1.slice(0, 7) + "-" + time_utc1.slice(7);
+                    time_utc1=time_utc1.slice(0, 10) + " " + time_utc1.slice(10);
+                    time_utc1=time_utc1.slice(0, 13) + ":" + time_utc1.slice(13);
+                    time_utc1=time_utc1.slice(0, 16) + ":" + time_utc1.slice(16);
+
+                    document.getElementById('sat1').innerHTML=words1[2]+","+words1[3];
+                    document.getElementById('slots1').innerHTML=lines.length;
+                    document.getElementById('speed1').innerHTML=words1[5].substring(0, 5);
+                    document.getElementById('length1').innerHTML=words1[1];
+                    document.getElementById('depth1').innerHTML=words1[6];
+                    document.getElementById('time1').innerHTML=time_utc1;
+                }
+            }
+            else
+            {
+                console.log(lines[lines.length-3]);
+                console.log(lines[lines.length-2]);
+                console.log(lines[lines.length-1]);
+                words=lines[lines.length-3].split(",");
+                words1=lines[lines.length-2].split(",");
+                words2=lines[lines.length-1].split(",");
+                if ((words2[2]!="")&&(words2[3]!=""))
+                {
+
+                    document.getElementById('sat').innerHTML=words[2]+","+words[3];
+                    document.getElementById('speed').innerHTML=words[5].substring(0, 5);
+
+                    var time_utc=words[0].slice(0, 4) + "-" + words[0].slice(4);
+                    time_utc=time_utc.slice(0, 7) + "-" + time_utc.slice(7);
+                    time_utc=time_utc.slice(0, 10) + " " + time_utc.slice(10);
+                    time_utc=time_utc.slice(0, 13) + ":" + time_utc.slice(13);
+                    time_utc=time_utc.slice(0, 16) + ":" + time_utc.slice(16);
+
+                    document.getElementById('time').innerHTML=time_utc;
+                    document.getElementById('length').innerHTML=words[1];
+                    document.getElementById('depth').innerHTML=words[6];
+                    document.getElementById('slots').innerHTML=lines.length-2;
+
+                    var time_utc1=words1[0].slice(0, 4) + "-" + words1[0].slice(4);
+                    time_utc1=time_utc1.slice(0, 7) + "-" + time_utc1.slice(7);
+                    time_utc1=time_utc1.slice(0, 10) + " " + time_utc1.slice(10);
+                    time_utc1=time_utc1.slice(0, 13) + ":" + time_utc1.slice(13);
+                    time_utc1=time_utc1.slice(0, 16) + ":" + time_utc1.slice(16);
+
+                    document.getElementById('sat1').innerHTML=words1[2]+","+words1[3];
+                    document.getElementById('slots1').innerHTML=lines.length-1;
+                    document.getElementById('speed1').innerHTML=words1[5].substring(0, 5);
+                    document.getElementById('length1').innerHTML=words1[1];
+                    document.getElementById('depth1').innerHTML=words1[6];
+                    document.getElementById('time1').innerHTML=time_utc1;
+
+                    var time_2=words2[0].slice(0, 4) + "-" + words2[0].slice(4);
+                    time_2=time_2.slice(0, 7) + "-" + time_2.slice(7);
+                    time_2=time_2.slice(0, 10) + " " + time_2.slice(10);
+                    time_2=time_2.slice(0, 13) + ":" + time_2.slice(13);
+                    time_2=time_2.slice(0, 16) + ":" + time_2.slice(16);
+
+                    document.getElementById('sat2').innerHTML=words2[2]+","+words2[3];
+                    document.getElementById('slots2').innerHTML=lines.length;
+                    document.getElementById('speed2').innerHTML=words2[5].substring(0, 5);
+                    document.getElementById('length2').innerHTML=words2[1];
+                    document.getElementById('depth2').innerHTML=words2[6];
+                    document.getElementById('time2').innerHTML=time_2;
+                }
+            }
+            //map.setCenter(new google.maps.LatLng(words[2],words[3]));
+
+            if (switch_flag==1)
+            {
+                marker.setAnimation(google.maps.Animation.DROP);
+                //map.setCenter(new google.maps.LatLng(words[2],words[3]));
+                switch_flag=0;
+            }
+
+
+
+        }
+
+        google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+</head>
+
+<body>
+
+
+<!-- Draw information table and Google Maps div -->
+
+<div>
+    <center><br />
+        <b>Latest Detected Space</b><br /><br />
+        <div id="superior" style="width:1000px;border:1px solid">
+            <table style="width:100%">
+                <tr>
+                    <td>UTC Time</td>
+                    <td>Vehicle speed (km/h)</td>
+                    <td>Space location</td>
+                    <td>Space length (m)</td>
+                    <td>Space depth (m)</td>
+                    <td>Total spaces</td>
+                </tr>
+                <tr>
+                    <td id="time"></td>
+                    <td id="speed"></td>
+                    <td id="sat"></td>
+                    <td id="length"></td>
+                    <td id="depth"></td>
+                    <td id="slots"></td>
+                </tr>
+                <tr>
+                    <td id="time1"></td>
+                    <td id="speed1"></td>
+                    <td id="sat1"></td>
+                    <td id="length1"></td>
+                    <td id="depth1"></td>
+                    <td id="slots1"></td>
+                </tr>
+                <tr>
+                    <td id="time2"></td>
+                    <td id="speed2"></td>
+                    <td id="sat2"></td>
+                    <td id="length2"></td>
+                    <td id="depth2"></td>
+                    <td id="slots2"></td>
+                </tr>
+
+            </table>
+        </div>
+        <br /><br />
+        <div id="googleMap" style="width:1000px;height:500px;"></div>
+    </center>
+
+
+</div></body>
+</html>
+
